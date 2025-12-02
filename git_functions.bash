@@ -16,16 +16,19 @@ alias cleanStaged="git restore ."
 
 # Cross-platform clipboard helper
 copy_to_clipboard() {
-    if command -v clip.exe &> /dev/null; then
+    if command -v code &> /dev/null && [ -n "$VSCODE_IPC_HOOK_CLI" ]; then
+        # VS Code environment (including dev containers)
+        code --stdin
+    elif command -v clip.exe &> /dev/null; then
         clip.exe
-    elif command -v xclip &> /dev/null; then
+    elif [ -n "$DISPLAY" ] && command -v xclip &> /dev/null; then
         xclip -selection clipboard
-    elif command -v xsel &> /dev/null; then
+    elif [ -n "$DISPLAY" ] && command -v xsel &> /dev/null; then
         xsel --clipboard --input
     elif command -v pbcopy &> /dev/null; then
         pbcopy
     else
-        echo "No clipboard command found. Install xclip or xsel."
+        echo "No clipboard command found."
         return 1
     fi
 }
