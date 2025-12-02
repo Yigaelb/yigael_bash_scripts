@@ -16,19 +16,20 @@ alias cleanStaged="git restore ."
 
 # Cross-platform clipboard helper
 copy_to_clipboard() {
-    if command -v code &> /dev/null && [ -n "$VSCODE_IPC_HOOK_CLI" ]; then
-        # VS Code environment (including dev containers)
-        code --stdin
-    elif command -v clip.exe &> /dev/null; then
-        clip.exe
+    local content
+    content=$(cat)
+
+    if command -v clip.exe &> /dev/null; then
+        echo -n "$content" | clip.exe
     elif [ -n "$DISPLAY" ] && command -v xclip &> /dev/null; then
-        xclip -selection clipboard
+        echo -n "$content" | xclip -selection clipboard
     elif [ -n "$DISPLAY" ] && command -v xsel &> /dev/null; then
-        xsel --clipboard --input
+        echo -n "$content" | xsel --clipboard --input
     elif command -v pbcopy &> /dev/null; then
-        pbcopy
+        echo -n "$content" | pbcopy
     else
-        echo "No clipboard command found."
+        # Fallback: print to terminal for manual copy
+        echo "$content"
         return 1
     fi
 }
@@ -41,7 +42,6 @@ alias gitcbn=gitCpBranchName
 gitCpCommitName() {
     git log --pretty=format:'%s' --no-walk | copy_to_clipboard
 }
-alias gitccn=gitCpCommitName
 alias gitccn=gitCpCommitName
 #endregion simple alias
 
