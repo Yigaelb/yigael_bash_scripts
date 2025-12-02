@@ -13,9 +13,32 @@ alias checkout="git checkout"
 alias gamend="echo git commit --amend --no-edit && git commit --amend --no-edit"
 alias gitamend="gamend"
 alias cleanStaged="git restore ."
-alias gitCpBranchName="git branch | grep '^\*' | cut -d' ' -f2 | tr -d '\n' | clip"
+
+# Cross-platform clipboard helper
+copy_to_clipboard() {
+    if command -v clip.exe &> /dev/null; then
+        clip.exe
+    elif command -v xclip &> /dev/null; then
+        xclip -selection clipboard
+    elif command -v xsel &> /dev/null; then
+        xsel --clipboard --input
+    elif command -v pbcopy &> /dev/null; then
+        pbcopy
+    else
+        echo "No clipboard command found. Install xclip or xsel."
+        return 1
+    fi
+}
+
+gitCpBranchName() {
+    git branch | grep '^\*' | cut -d' ' -f2 | tr -d '\n' | copy_to_clipboard
+}
 alias gitcbn=gitCpBranchName
-alias gitCpCommitName="git log --pretty=format:'%s' --no-walk | clip"
+
+gitCpCommitName() {
+    git log --pretty=format:'%s' --no-walk | copy_to_clipboard
+}
+alias gitccn=gitCpCommitName
 alias gitccn=gitCpCommitName
 #endregion simple alias
 
