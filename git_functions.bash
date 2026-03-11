@@ -355,6 +355,46 @@ function get_branch() {
 }
 #endregion
 
+copy_xlo_ai_xlal_files() {
+  set -euo pipefail
+
+  local src_repo='https://office@dev.azure.com/office/OC/_git/xlo-ai-agents'
+  local src_branch="${1:-main}"
+  local dest_root="${2:-$PWD}"
+  local tmpdir
+
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+
+  git clone --quiet --depth 1 --filter=blob:none --sparse --branch "$src_branch" "$src_repo" "$tmpdir"
+
+  (
+    cd "$tmpdir"
+
+    git sparse-checkout set \
+      'memory-bank/shared-knowledge/excel-shared/augloop' \
+      '.github/agents' \
+      '.github/prompts'
+
+    find \
+      memory-bank/shared-knowledge/excel-shared/augloop \
+      .github/agents \
+      .github/prompts \
+      -type f \
+      \( \
+        -path 'memory-bank/shared-knowledge/excel-shared/augloop/*' -o \
+        -path '.github/agents/*XLAL Agent.chatmode.md' -o \
+        -path '.github/prompts/xlal.*' \
+      \) \
+      -print0 |
+    while IFS= read -r -d '' relpath; do
+      mkdir -p "$dest_root/$(dirname "$relpath")"
+      cp -p "$relpath" "$dest_root/$relpath"
+      printf 'Copied %s\n' "$relpath"
+    done
+  )
+}
+
 # Bash Color Codes
 # Black 0;30
 
